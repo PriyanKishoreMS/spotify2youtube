@@ -98,7 +98,6 @@ func main() {
 
 			songs = append(songs, &s)
 			createPlaylist(token)
-
 			log.Printf("Track %d: %s - %s", count, s.TrackName, s.Album)
 		}
 		err = client.NextPage(ctx, &playlist.Tracks)
@@ -149,11 +148,10 @@ func createPlaylist(token *oauth2.Token) {
 
 	newPlaylist := &youtube.Playlist{
 		Snippet: &youtube.PlaylistSnippet{
-			Title:       "My New Playlist",
-			Description: "A playlist created using the YouTube Data API",
+			Title: "Spotify songs playlist",
 		},
 		Status: &youtube.PlaylistStatus{
-			PrivacyStatus: "public",
+			PrivacyStatus: "private",
 		},
 	}
 
