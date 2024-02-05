@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 
@@ -10,6 +11,13 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2/clientcredentials"
 )
+
+type song struct {
+	ID        int    `json:"id"`
+	Album     string `json:"alubum"`
+	Artist    string `json:"artist"`
+	TrackName string `json:"song"`
+}
 
 func main() {
 	ctx := context.Background()
@@ -33,10 +41,21 @@ func main() {
 
 	count := 0
 	log.Printf("Playlist %s has a total of %d tracks", playlist.Name, playlist.Tracks.Total)
+
+	var songs []*song
 	for page := 1; ; page++ {
-		for id, track := range playlist.Tracks.Tracks {
+		for _, track := range playlist.Tracks.Tracks {
 			count++
-			log.Printf("Track %d: %s - %s", id, track.Track.Name, track.Track.Album.Name)
+			s := song{
+				ID:        count,
+				Album:     track.Track.Album.Name,
+				Artist:    track.Track.Artists[0].Name,
+				TrackName: track.Track.Name,
+			}
+
+			songs = append(songs, &s)
+
+			log.Printf("Track %d: %s - %s", count, s.TrackName, s.Album)
 		}
 		err = client.NextPage(ctx, &playlist.Tracks)
 		if err == spotify.ErrNoMorePages {
@@ -45,6 +64,16 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+
+	jsonData, err := json.MarshalIndent(songs, "", " ")
+	if err != nil {
+		log.Fatal("error in marshal: ", err)
+	}
+
+	err = os.WriteFile("playlist.json", jsonData, 0644)
+	if err != nil {
+		log.Fatal("error writing to file: ", err)
 	}
 
 }
